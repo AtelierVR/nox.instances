@@ -1,6 +1,6 @@
 using Nox.Search;
 
-namespace api.nox.instance.search {
+namespace Nox.Instances.Runtime.Search {
 	public class Search {
 		private readonly IHandler _handler;
 

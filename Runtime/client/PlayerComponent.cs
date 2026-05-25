@@ -10,7 +10,7 @@ using UnityEngine.UI;
 using Logger = Nox.CCK.Utils.Logger;
 using Transform = UnityEngine.Transform;
 
-namespace api.nox.instance.client {
+namespace Nox.Instances.Runtime.client {
 	public class PlayerComponent : MonoBehaviour {
 		public static GameObject PlayerPrefab
 			=> Client.GetAsset<GameObject>("player:player.prefab");

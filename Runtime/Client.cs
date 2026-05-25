@@ -1,12 +1,12 @@
 using System.Linq;
-using api.nox.instance.client;
+using Nox.Instances.Runtime.client;
 using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Events;
 using Nox.CCK.Mods.Initializers;
 using Nox.CCK.Utils;
 using Nox.UI;
 
-namespace api.nox.instance {
+namespace Nox.Instances.Runtime {
 	public class Client : IClientModInitializer {
 		internal static IUiAPI UiAPI
 			=> Main.Instance.CoreAPI.ModAPI

@@ -1,5 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <linker>
-    <assembly fullname="Nox.Mods.Instances" preserve="all" />
-    <assembly fullname="Nox.Instances.Runtime" preserve="all" />
+	<assembly fullname="Nox.CCK.Instances" preserve="all" />
+	<assembly fullname="Nox.Instances" preserve="all" />
+	<assembly fullname="Nox.Instances.Runtime" preserve="all" />
+	<assembly fullname="Nox.Mods.Instances" preserve="all" />
 </linker>

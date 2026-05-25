@@ -1,9 +1,9 @@
-using api.nox.instance.client;
+using Nox.Instances.Runtime.client;
 using Cysharp.Threading.Tasks;
 using Nox.Search;
 using UnityEngine;
 
-namespace api.nox.instance.search {
+namespace Nox.Instances.Runtime.search {
 	public class SearchData : IResultData {
 		public Instance Reference;
 

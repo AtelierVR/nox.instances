@@ -5,7 +5,7 @@ using Nox.CCK.Convertors;
 using Nox.CCK.Utils;
 using Nox.Instances;
 
-namespace api.nox.instance {
+namespace Nox.Instances.Runtime {
 	[Serializable]
 	public class Instance : IInstance, INoxObject {
 

@@ -5,7 +5,7 @@ using Nox.CCK.Network;
 using Nox.CCK.Utils;
 using UnityEngine.Events;
 
-namespace api.nox.instance.network {
+namespace Nox.Instances.Runtime.Networks {
 	public class Network {
 		private readonly UnityEvent<Instance> _fetchEvent = new();
 

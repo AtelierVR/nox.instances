@@ -6,7 +6,7 @@ using Nox.CCK.Utils;
 using Nox.Search;
 using UnityEngine;
 
-namespace api.nox.instance.search {
+namespace Nox.Instances.Runtime.Search {
 	public class SearchHandler : IHandler {
 		public string GetId()
 			=> Main.Instance.CoreAPI.ModMetadata.GetId();

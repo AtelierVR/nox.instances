@@ -1,6 +1,6 @@
 using Nox.Instances;
 
-namespace api.nox.instance {
+namespace Nox.Instances.Runtime {
 	public class Owner : IOwner {
 		private readonly string _id;
 

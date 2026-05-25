@@ -5,7 +5,7 @@ using Nox.CCK.Utils;
 using Nox.Instances;
 using Nox.Users;
 
-namespace api.nox.instance {
+namespace Nox.Instances.Runtime {
 	[Serializable]
 	public class InstancePlayer : IInstancePlayer {
 		[JsonProperty("name"), JsonConverter(typeof(StringToIdentifierConverter))]

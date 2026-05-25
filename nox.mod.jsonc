@@ -1,6 +1,6 @@
 {
   "type": "mod",
-  "id": "api.nox.instance",
+  "id": "nox.instance",
   "provides": [
     "instances"
   ],
@@ -63,14 +63,12 @@
   ],
   "entrypoints": {
     "main": [
-      "api.nox.instance.Main"
+      "Nox.Instances.Runtime.Main"
     ],
     "client": [
-      "api.nox.instance.Client"
+      "Nox.Instances.Runtime.Client"
     ]
   },
-  "references": [],
-  
   "permissions": [
     "file",
     "file.read",

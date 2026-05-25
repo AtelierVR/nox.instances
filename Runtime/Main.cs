@@ -1,29 +1,22 @@
-using System.Linq;
-using api.nox.instance.network;
-using api.nox.instance.search;
 using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
 using Nox.CCK.Instances;
 using Nox.CCK.Language;
 using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Initializers;
 using Nox.CCK.Utils;
-using Nox.Instances;
 using Nox.Network;
 using Nox.Search;
 using Nox.Sessions;
 using Nox.Users;
 using Nox.Worlds;
-using ISearchRequest = Nox.Instances.ISearchRequest;
-using ISearchResponse = Nox.Instances.ISearchResponse;
 
-namespace api.nox.instance {
+namespace Nox.Instances.Runtime {
 	public class Main : IMainModInitializer, IInstanceAPI {
-		static internal Main           Instance;
-		internal        IMainModCoreAPI CoreAPI;
-		internal        Network        Network;
-		private         LanguagePack   _language;
-		private         Search         _search;
+		static internal Main Instance;
+		internal IMainModCoreAPI CoreAPI;
+		internal Networks.Network Network;
+		private LanguagePack _language;
+		private Search.Search _search;
 
 		static internal INetworkAPI NetworkAPI
 			=> Instance.CoreAPI.ModAPI
@@ -61,8 +54,8 @@ namespace api.nox.instance {
 			Instance  = this;
 			_language = CoreAPI.AssetAPI.GetAsset<LanguagePack>("lang.asset");
 			LanguageManager.AddPack(_language);
-			_search = new Search();
-			Network = new Network();
+			_search = new Search.Search();
+			Network = new Networks.Network();
 		}
 
 		public void OnDisposeMain() {

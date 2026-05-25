@@ -4,7 +4,7 @@ using Nox.Worlds;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
 
-namespace api.nox.instance.client {
+namespace Nox.Instances.Runtime.client {
 	public class InstanceCreationComponent : MonoBehaviour {
 		public InstanceCreationPage Page;
 

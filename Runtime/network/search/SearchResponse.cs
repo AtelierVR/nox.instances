@@ -5,10 +5,8 @@ using Newtonsoft.Json;
 using Nox.CCK.Convertors;
 using Nox.CCK.Instances;
 using Nox.CCK.Utils;
-using Nox.Instances;
-using ISearchResponse = Nox.Instances.ISearchResponse;
 
-namespace api.nox.instance.network {
+namespace Nox.Instances.Runtime.Networks {
 	[Serializable]
 	public class SearchResponse : ISearchResponse, INoxObject {
 		internal SearchRequest Request;

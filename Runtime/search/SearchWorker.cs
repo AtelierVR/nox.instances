@@ -1,9 +1,8 @@
-using api.nox.instance.network;
 using Cysharp.Threading.Tasks;
 using Nox.CCK.Instances;
 using Nox.Search;
 
-namespace api.nox.instance.search {
+namespace Nox.Instances.Runtime.Search {
 	public class SearchWorker : IWorker {
 		public string Title;
 		public string Server;

@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
-using api.nox.instance.network;
+using Nox.Instances.Runtime.Networks;
+using Nox.Instances.Runtime.search;
 using Nox.Search;
 
-namespace api.nox.instance.search {
+namespace Nox.Instances.Runtime.Search {
 	public class SearchResult : IResult {
 		public string Error { get; internal set; }
 		public SearchResponse Response;

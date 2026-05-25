@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using Nox.CCK.Utils;
 using Nox.Instances;
 
-namespace api.nox.instance {
+namespace Nox.Instances.Runtime {
 	[Serializable]
 	// ReSharper disable InconsistentNaming
 	public class Connection : IConnection, INoxObject {
