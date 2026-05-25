@@ -1,5 +1,6 @@
 ﻿{
-  "name": "nox.instances",
-  "displayName": "Nox - Instances",
-  "version": "1.0.0"
+    "name":  "nox.instances",
+    "displayName":  "Nox - Instances",
+    "version":  "1.0.0",
+    "description":  "Instance management for creating, joining, and tracking world instances."
 }
