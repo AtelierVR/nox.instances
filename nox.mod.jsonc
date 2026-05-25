@@ -1,0 +1,81 @@
+{
+  "type": "mod",
+  "id": "api.nox.instance",
+  "provides": [
+    "instances"
+  ],
+  "name": "Instance system",
+  "version": "1.0.0",
+  "description": "Provides the Test API for the game.",
+  "license": "GPL-3.0",
+  "icon": null,
+  "contact": {
+    "email": "hactazia@gmail.com",
+    "source": "https://github.com/AtelierVR/api.nox.instance",
+    "website": "https://nox.hactazia.fr/",
+    "issues": "https://github.com/AtelierVR/api.nox.instance/issues"
+  },
+  "authors": [
+    {
+      "name": "Hactazia",
+      "email": "hactazia@gmail.com",
+      "website": "https://hactazia.fr/"
+    }
+  ],
+  "contributors": [],
+  "relations": [
+    {
+      "id": "network",
+      "type": "depends",
+      "version": ">=1.0.0"
+    },
+    {
+      "id": "ui",
+      "type": "depends",
+      "version": ">=1.0.0"
+    },
+    {
+      "id": "search",
+      "type": "depends",
+      "version": ">=1.0.0"
+    },
+    {
+      "id": "users",
+      "type": "depends",
+      "version": ">=1.0.0"
+    },
+    {
+      "id": "worlds",
+      "type": "depends",
+      "version": ">=1.0.0"
+    },
+    {
+      "id": "session",
+      "type": "depends",
+      "version": ">=1.0.0"
+    }
+  ],
+  "constraints": [
+    {
+      "type": "after",
+      "id": "search"
+    }
+  ],
+  "entrypoints": {
+    "main": [
+      "api.nox.instance.Main"
+    ],
+    "client": [
+      "api.nox.instance.Client"
+    ]
+  },
+  "references": [],
+  
+  "permissions": [
+    "file",
+    "file.read",
+    "file.write",
+    "config",
+    "config.global"
+  ]
+}

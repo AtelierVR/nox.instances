@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 776389e82c640c44086d3baf10dd1c7b, type: 3}
+  m_Name: lang
+  m_EditorClassIdentifier: Nox.CCK::Nox.CCK.Language.LanguagePack
+  languages:
+  - IETF: en-US
+    entries:
+    - key: instance.search.data.title
+      value: "{0}"
+    - key: instance.search.title
+      value: "Instances"
+    - key: instance.search.placeholder
+      value: "Search instances..."
+    - key: instance.search.description
+      value: "Search for instances by title, or description."
+    - key: instance.search.worker.title
+      value: "{0}"
+    - key: instance.title
+      value: "{0}"
+    - key: instance.identifier
+      value: "{0}"
+    - key: instance.error
+      value: "Error"
+    - key: instance.loading
+      value: "Loading..."
+    - key: instance.about.title
+      value: "About {0}"
+    - key: instance.about.description
+      value: "Description"
+    - key: instance.about.actions
+      value: "Actions"
+    - key: instance.description
+      value: "{0}"
+    - key: instance.players.title
+      value: "Players"
+    - key: instance.no_players
+      value: "No players found."
+    - key: instance.session.label
+      value: "#{0} - {1}"
+    - key: instance.join
+      value: "Join Instance"
+    - key: instance.join.already_connected
+      value: "Connected"
+    - key: instance.join.not_joinable
+      value: "Not Joinable"
+    - key: instance.join.error
+      value: "Error"
+    - key: instance.cache.none
+      value: "Download"
+    - key: instance.cache.add
+      value: "Download"
+    - key: instance.cache.downloading
+      value: "Downloading"
+    - key: instance.cache.cancel
+      value: "Cancel Dl."
+    - key: instance.cache.downloaded
+      value: "Downloaded"
+    - key: instance.cache.remove
+      value: "Remove Dl."
