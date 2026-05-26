@@ -13,7 +13,7 @@ using Transform = UnityEngine.Transform;
 namespace Nox.Instances.Runtime.client {
 	public class PlayerComponent : MonoBehaviour {
 		public static GameObject PlayerPrefab
-			=> Client.GetAsset<GameObject>("player:player.prefab");
+			=> Client.GetAsset<GameObject>("players:player.prefab");
 
 		public static async UniTask<(GameObject go, PlayerComponent comp)> Generate(InstanceComponent reference, Transform parent, GameObject playerPrefab = null, (IUser, IInstancePlayer) user = default) {
 			playerPrefab ??= PlayerPrefab;

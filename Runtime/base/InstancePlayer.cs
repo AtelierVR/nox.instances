@@ -8,7 +8,7 @@ using Nox.Users;
 namespace Nox.Instances.Runtime {
 	[Serializable]
 	public class InstancePlayer : IInstancePlayer {
-		[JsonProperty("name"), JsonConverter(typeof(StringToIdentifierConverter))]
+		[JsonProperty("user"), JsonConverter(typeof(StringToIdentifierConverter))]
 		public Identifier Identifier { get; private set; }
 
 		[JsonProperty("display")]

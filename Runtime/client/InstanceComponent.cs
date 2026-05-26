@@ -442,7 +442,7 @@ namespace Nox.Instances.Runtime.client {
 
 			var players = instance.Players;
 			var playersByServer = players
-				.GroupBy(p => p.Identifier.Server)
+				.GroupBy(p => p.Identifier.Server ?? Identifier.LOCAL_SERVER)
 				.ToDictionary(g => g.Key, g => g.ToArray());
 
 			var isEmpty = true;
@@ -455,15 +455,15 @@ namespace Nox.Instances.Runtime.client {
 						foreach (Transform child in playerList.transform)
 							Destroy(child.gameObject);
 					isFirst = false;
-					foreach (var user in users) {
-						PlayerComponent.Generate(this, playerList.transform, prefab, user).Forget();
-					}
 
 					if (users.Length > 0) {
 						isEmpty = false;
 						playerInfobox.SetActive(false);
 						playerListContainer.SetActive(true);
-						UpdateLayout.UpdateImmediate(playerList);
+						UniTask.WhenAll(users.Select(user =>
+							PlayerComponent.Generate(this, playerList.transform, prefab, user)))
+							.ContinueWith(_ => UpdateLayout.UpdateImmediate(playerList))
+							.Forget();
 					}
 				}
 			);
@@ -477,7 +477,7 @@ namespace Nox.Instances.Runtime.client {
 				if (users.Length == 0)
 					continue;
 
-				if (server == "::") {
+				if (server == Identifier.LOCAL_SERVER) {
 					action(users.Select(u => ((IUser)null, u)).ToArray());
 				} else
 					tasks.Add(SearchPlayers(users, server, _playerListTokenSource.Token, action));

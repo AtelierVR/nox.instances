@@ -52,6 +52,8 @@ namespace Nox.Instances.Runtime.Networks {
 
 		public async UniTask<SearchResponse> Search(SearchRequest data, CancellationToken cancellationToken = default) {
 			var address = Main.UserAPI?.Current?.Server ?? data.Server;
+			if (data.Server == address)
+				data.Server = Identifier.LOCAL_SERVER;
 			
 			var request = await RequestNode.To(address, $"/instances{data}");
 			if (request == null) {

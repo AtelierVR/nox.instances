@@ -3,7 +3,7 @@ using ISearchRequest = Nox.Instances.ISearchRequest;
 
 namespace Nox.CCK.Instances {
 	public class SearchRequest : ISearchRequest, INoxObject {
-		public string Server { get; set; } = null;
+		public string Server { get; set; } = Identifier.LOCAL_SERVER;
 
 		public string Query { get; set; } = null;
 
@@ -17,7 +17,7 @@ namespace Nox.CCK.Instances {
 
 		public override string ToString() {
 			var text = "";
-			if (!string.IsNullOrEmpty(Server))
+			if (!string.IsNullOrEmpty(Server) && Server != Identifier.LOCAL_SERVER)
 				text += (text.Length > 0 ? "&" : "") + $"server={Server}";
 			if (!string.IsNullOrEmpty(Query))
 				text += (text.Length > 0 ? "&" : "") + $"query={Query}";
