@@ -1,6 +1,6 @@
 {
   "type": "mod",
-  "id": "nox.instance",
+  "id": "nox.instances",
   "provides": [
     "instances"
   ],
