@@ -3,5 +3,4 @@
 	<assembly fullname="Nox.CCK.Instances" preserve="all" />
 	<assembly fullname="Nox.Instances" preserve="all" />
 	<assembly fullname="Nox.Instances.Runtime" preserve="all" />
-	<assembly fullname="Nox.Mods.Instances" preserve="all" />
 </linker>
