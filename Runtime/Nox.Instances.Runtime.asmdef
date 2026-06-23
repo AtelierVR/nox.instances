@@ -1,7 +1,7 @@
 ﻿{
     "name": "Nox.Instances.Runtime",
     "rootNamespace": "",
-    "references": ["Nox.CCK","UniTask","Nox.Users","Nox.Worlds","Nox.Instances","Nox.UI","Nox.Search","Nox.Network","Nox.Sessions","Nox.Players","Unity.TextMeshPro","Nox.CCK.Worlds","Nox.CCK.Network","Nox.CCK.Sessions","Nox.Entities","Nox.CCK.Instances"],
+    "references": ["Nox.CCK","UniTask","Nox.Users","Nox.Worlds","Nox.Instances","Nox.UI","Nox.Search","Nox.CCK.Search","Nox.Network","Nox.Sessions","Nox.Players","Unity.TextMeshPro","Nox.CCK.Worlds","Nox.CCK.Network","Nox.CCK.Sessions","Nox.Entities","Nox.CCK.Instances"],
     "includePlatforms": [],"excludePlatforms": [],"allowUnsafeCode": false,"overrideReferences": false,
     "precompiledReferences": [],"autoReferenced": true,"defineConstraints": [],"versionDefines": [],"noEngineReferences": false
 }
