@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Nox.CCK.Language;
+using Nox.CCK.Search;
 using Nox.CCK.Sessions;
 using Nox.CCK.Utils;
 using Nox.Instances;
@@ -519,21 +520,9 @@ namespace Nox.Instances.Runtime.client {
 			return res.ToArray();
 		}
 
-		public string[] GetSearchableServers() {
-			var x0 = Config.Load().Get("servers");
-			if (x0 == null)
-				return Array.Empty<string>();
-			var x1 = x0.ToObject<Dictionary<string, JObject>>();
-			var x2 = new List<string>();
-			foreach (var (address, value) in x1) {
-				var features = value["features"]?.Values<string>().ToArray() ?? Array.Empty<string>();
-				var search   = value["search"]?.ToObject<bool>() ?? false;
-				if (!(search && features.Contains("users")))
-					continue;
-				x2.Add(address);
-			}
-
-			return x2.ToArray();
-		}
+		public IEnumerable<string> GetSearchableServers()
+			=> SearchHelper
+				.ServersBy("users")
+				.Select(s => s.Address);
 	}
 }
