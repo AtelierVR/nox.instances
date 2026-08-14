@@ -76,5 +76,33 @@ namespace Nox.Instances.Runtime.Networks {
 
 			return instances;
 		}
+
+		public async UniTask<Instance> Create(CreateInstanceRequest data, string from = null, CancellationToken cancellationToken = default) {
+			var address = from ?? Main.UserAPI?.Current?.Server;
+			if (string.IsNullOrEmpty(address)) {
+				Logger.LogError("Cannot create instance: no server address provided.");
+				return null;
+			}
+
+			var request = await RequestNode.To(address, "/instances");
+			if (request == null) {
+				Logger.LogError("Failed to create request for instance creation");
+				return null;
+			}
+
+			request.SetBody(data.ToJson());
+			request.method = RequestExtension.Method.PUT;
+
+			await request.Send(cancellationToken);
+			var response = await request.Node<Instance>(cancellationToken);
+			if (response.HasError()) {
+				Logger.LogError($"Failed to create instance on {address}: {response.Error.Message}");
+				return null;
+			}
+
+			var instance = response.Data;
+			InvokeFetch(instance);
+			return instance;
+		}
 	}
 }

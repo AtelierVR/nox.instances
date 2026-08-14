@@ -6,6 +6,7 @@ using Nox.CCK.Mods.Initializers;
 using Nox.CCK.Utils;
 using Nox.Network;
 using Nox.Search;
+using Nox.Servers;
 using Nox.Sessions;
 using Nox.Users;
 using Nox.Worlds;
@@ -42,6 +43,11 @@ namespace Nox.Instances.Runtime {
 			=> Instance.CoreAPI.ModAPI
 				.GetMod("session")
 				?.GetInstance<ISessionAPI>();
+
+		static internal IServerAPI ServerAPI
+			=> Instance.CoreAPI.ModAPI
+				.GetMod("servers")
+				?.GetInstance<IServerAPI>();
 
 		public async UniTask<IInstance> Fetch(Identifier identifier)
 			=> await Network.Fetch(identifier);

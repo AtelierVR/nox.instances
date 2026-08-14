@@ -52,6 +52,11 @@
       "id": "session",
       "type": "depends",
       "version": ">=1.0.0"
+    },
+    {
+      "id": "servers",
+      "type": "depends",
+      "version": ">=1.0.0"
     }
   ],
   "constraints": [

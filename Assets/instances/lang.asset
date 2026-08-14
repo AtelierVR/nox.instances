@@ -67,3 +67,125 @@ MonoBehaviour:
       value: "Downloaded"
     - key: instance.cache.remove
       value: "Remove Dl."
+    - key: instance.create.title
+      value: "Create instance"
+    - key: instance.create.mode
+      value: "Select a mode"
+    - key: instance.create.mode.simple
+      value: "Simple"
+    - key: instance.create.mode.advanced
+      value: "Advanced"
+    - key: instance.create.server
+      value: "Select a server"
+    - key: instance.create.server.placeholder
+      value: "Choose a server…"
+    - key: instance.create.server.empty
+      value: "No server configured"
+    - key: instance.create.world
+      value: "Select a world"
+    - key: instance.create.world.placeholder
+      value: "World identifier"
+    - key: instance.create.title.label
+      value: "Title"
+    - key: instance.create.title.placeholder
+      value: "Title"
+    - key: instance.create.description.label
+      value: "Description"
+    - key: instance.create.description.placeholder
+      value: "Description"
+    - key: instance.create.capacity
+      value: "Capacity"
+    - key: instance.create.capacity.default
+      value: "world default"
+    - key: instance.create.capacity.unlimited
+      value: "unlimited"
+    - key: instance.create.capacity.slots
+      value: "slots"
+    - key: instance.create.version
+      value: "World Version"
+    - key: instance.create.version.placeholder
+      value: "World Version"
+    - key: instance.create.tags
+      value: "Tags"
+    - key: instance.create.tags.placeholder
+      value: "tag1, tag2, tag3"
+    - key: instance.create.short_name
+      value: "Short Name"
+    - key: instance.create.short_name.placeholder
+      value: "my-instance"
+    - key: instance.create.info
+      value: "Information"
+    - key: instance.create.submit
+      value: "Create"
+    - key: instance.create.error.world_not_found
+      value: "Unable to load the world."
+    - key: instance.create.error.no_world
+      value: "Select a world before creating the instance."
+    - key: instance.create.error.failed
+      value: "Failed to create the instance."
+    - key: instance.create.error.server_not_found
+      value: "Server not found."
+    - key: instance.create.error.server_cannot_host
+      value: "This server cannot host instances."
+  - IETF: fr-FR
+    entries:
+    - key: instance.create.title
+      value: "Créer une instance"
+    - key: instance.create.mode
+      value: "Sélectionner un mode"
+    - key: instance.create.mode.simple
+      value: "Simple"
+    - key: instance.create.mode.advanced
+      value: "Avancé"
+    - key: instance.create.server
+      value: "Sélectionner un serveur"
+    - key: instance.create.server.placeholder
+      value: "Choisir un serveur..."
+    - key: instance.create.server.empty
+      value: "Aucun serveur configuré"
+    - key: instance.create.world
+      value: "Sélectionner un monde"
+    - key: instance.create.world.placeholder
+      value: "World identifier"
+    - key: instance.create.title.label
+      value: "Titre"
+    - key: instance.create.title.placeholder
+      value: "Titre"
+    - key: instance.create.description.label
+      value: "Description"
+    - key: instance.create.description.placeholder
+      value: "Description"
+    - key: instance.create.capacity
+      value: "Capacité"
+    - key: instance.create.capacity.default
+      value: "défaut monde"
+    - key: instance.create.capacity.unlimited
+      value: "illimité"
+    - key: instance.create.capacity.slots
+      value: "slots"
+    - key: instance.create.version
+      value: "World Version"
+    - key: instance.create.version.placeholder
+      value: "World Version"
+    - key: instance.create.tags
+      value: "Tags"
+    - key: instance.create.tags.placeholder
+      value: "tag1, tag2, tag3"
+    - key: instance.create.short_name
+      value: "Nom court"
+    - key: instance.create.short_name.placeholder
+      value: "mon-instance"
+    - key: instance.create.info
+      value: "Informations"
+    - key: instance.create.submit
+      value: "Créer"
+    - key: instance.create.error.world_not_found
+      value: "Impossible de charger le monde."
+    - key: instance.create.error.no_world
+      value: "Sélectionnez un monde avant de créer l'instance."
+    - key: instance.create.error.failed
+      value: "La création de l'instance a échoué."
+    - key: instance.create.error.server_not_found
+      value: "Serveur introuvable."
+    - key: instance.create.error.server_cannot_host
+      value: "Ce serveur ne peut pas héberger d'instances."
