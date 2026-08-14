@@ -17,7 +17,9 @@ namespace Nox.Instances.Runtime.client {
 	public class InstanceCreationComponent : MonoBehaviour {
 		public InstanceCreationPage Page;
 
-		private const int MaxCapacity = 256;
+		private const int MinCapacity = 128;
+
+		private bool _capacityTouched;
 
 		// Header (left panel)
 		public Image        labelIcon;
@@ -178,6 +180,8 @@ namespace Nox.Instances.Runtime.client {
 			tagsField = null;
 			shortNameField = null;
 
+			_capacityTouched = false;
+
 			label.UpdateText("instance.create.title");
 			labelIcon.sprite = Client.GetAsset<Sprite>("ui:icons/edit_location.png");
 			UpdateHeaderModeText();
@@ -245,10 +249,10 @@ namespace Nox.Instances.Runtime.client {
 			capacityType   = Reference.GetComponent<TextLanguage>("type", range);
 
 			capacitySlider.minValue     = 0f;
-			capacitySlider.maxValue     = MaxCapacity;
+			capacitySlider.maxValue     = GetMaxCapacity();
 			capacitySlider.wholeNumbers = true;
-			capacitySlider.SetValueWithoutNotify(Page.Capacity);
-			capacitySlider.onValueChanged.AddListener(UpdateCapacityValue);
+			capacitySlider.SetValueWithoutNotify(InitialCapacity());
+			capacitySlider.onValueChanged.AddListener(OnCapacityChanged);
 			UpdateCapacityValue(capacitySlider.value);
 		}
 
@@ -305,15 +309,31 @@ namespace Nox.Instances.Runtime.client {
 		private void UpdateCapacityValue(float value) {
 			var v = Mathf.RoundToInt(value);
 			if (capacityValue)
-				capacityValue.UpdateText("value", new[] { v.ToString() });
+				capacityValue.UpdateText(
+					v == 0 ? "instance.create.capacity.unlimited" : "instance.create.capacity.slots",
+					new[] { v.ToString() });
 			if (capacityType)
-				capacityType.UpdateText(
-					v == 0
-						? "instance.create.capacity.default"
-						: v >= MaxCapacity
-							? "instance.create.capacity.unlimited"
-							: "instance.create.capacity.slots"
-				);
+				capacityType.UpdateText("instance.create.capacity.slots", new[] { GetMaxCapacity().ToString() });
+		}
+
+		private void OnCapacityChanged(float value) {
+			_capacityTouched = true;
+			UpdateCapacityValue(value);
+		}
+
+		private float InitialCapacity() {
+			var capacity = Page.World?.Capacity ?? Page.Capacity;
+			return CapacityToSlider(capacity);
+		}
+
+		private int GetMaxCapacity() {
+			var worldCapacity = Page.World?.Capacity ?? (ushort)0;
+			return Mathf.Min(Mathf.Max(MinCapacity, (int)worldCapacity * 2), ushort.MaxValue);
+		}
+
+		private float CapacityToSlider(ushort capacity) {
+			if (capacity == 0) return 0f;
+			return Mathf.Min((int)capacity, GetMaxCapacity());
 		}
 
 		private void ShowError(string key) {
@@ -418,6 +438,15 @@ namespace Nox.Instances.Runtime.client {
 
 			if (versionField)
 				versionField.text = Page.Version == ushort.MaxValue ? string.Empty : Page.Version.ToString();
+
+			if (capacitySlider) {
+				capacitySlider.maxValue = GetMaxCapacity();
+				if (!_capacityTouched)
+					capacitySlider.SetValueWithoutNotify(CapacityToSlider(world.Capacity));
+				else if (capacitySlider.value > capacitySlider.maxValue)
+					capacitySlider.SetValueWithoutNotify(capacitySlider.maxValue);
+			}
+			UpdateCapacityValue(capacitySlider ? capacitySlider.value : 0f);
 		}
 
 		#endregion
@@ -460,7 +489,7 @@ namespace Nox.Instances.Runtime.client {
 			if (!capacitySlider) return Page.Capacity;
 			var v = Mathf.RoundToInt(capacitySlider.value);
 			if (v <= 0) return 0;
-			return v >= MaxCapacity ? ushort.MaxValue : (ushort)v;
+			return (ushort)Mathf.Min(v, GetMaxCapacity());
 		}
 
 		private static string FormatWorldIdentifier(IWorld world, ushort version) {

@@ -95,12 +95,10 @@ MonoBehaviour:
       value: "Description"
     - key: instance.create.capacity
       value: "Capacity"
-    - key: instance.create.capacity.default
-      value: "world default"
     - key: instance.create.capacity.unlimited
       value: "unlimited"
     - key: instance.create.capacity.slots
-      value: "slots"
+      value: "{0} slots"
     - key: instance.create.version
       value: "World Version"
     - key: instance.create.version.placeholder
@@ -157,12 +155,10 @@ MonoBehaviour:
       value: "Description"
     - key: instance.create.capacity
       value: "Capacité"
-    - key: instance.create.capacity.default
-      value: "défaut monde"
     - key: instance.create.capacity.unlimited
       value: "illimité"
     - key: instance.create.capacity.slots
-      value: "slots"
+      value: "{0} slots"
     - key: instance.create.version
       value: "World Version"
     - key: instance.create.version.placeholder
