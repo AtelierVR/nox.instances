@@ -17,6 +17,8 @@ namespace Nox.Instances.Runtime.client {
 	public class InstanceCreationComponent : MonoBehaviour {
 		public InstanceCreationPage Page;
 
+		private const int MaxCapacity = 256;
+
 		// Header (left panel)
 		public Image        labelIcon;
 		public TextLanguage label;
@@ -49,6 +51,7 @@ namespace Nox.Instances.Runtime.client {
 		private GameObject   _boxAsset;
 		private GameObject   _listAsset;
 		private GameObject   _inputFieldAsset;
+		private GameObject   _textAreaAsset;
 		private GameObject   _btnAsset;
 		private GameObject   _textAsset;
 
@@ -71,6 +74,7 @@ namespace Nox.Instances.Runtime.client {
 			component._boxAsset        = Client.GetAsset<GameObject>("ui:prefabs/box.prefab");
 			component._listAsset       = listAsset;
 			component._inputFieldAsset = Client.GetAsset<GameObject>("ui:prefabs/input_field.prefab");
+			component._textAreaAsset   = Client.GetAsset<GameObject>("ui:prefabs/text_area.prefab");
 			component._btnAsset        = Client.GetAsset<GameObject>("ui:prefabs/btn_icon.prefab");
 			component._textAsset       = Client.GetAsset<GameObject>("ui:prefabs/text.prefab");
 
@@ -228,7 +232,7 @@ namespace Nox.Instances.Runtime.client {
 
 		private void BuildDescriptionBox() {
 			MakeBox("instance.create.description.label", out var boxContent);
-			descriptionField = MakeInput(boxContent, "instance.create.description.placeholder", TMP_InputField.ContentType.Standard);
+			descriptionField = MakeTextArea(boxContent, "instance.create.description.placeholder");
 			descriptionField.text = Page.Description ?? (Page.World?.Description ?? string.Empty);
 		}
 
@@ -241,7 +245,7 @@ namespace Nox.Instances.Runtime.client {
 			capacityType   = Reference.GetComponent<TextLanguage>("type", range);
 
 			capacitySlider.minValue     = 0f;
-			capacitySlider.maxValue     = ushort.MaxValue;
+			capacitySlider.maxValue     = MaxCapacity;
 			capacitySlider.wholeNumbers = true;
 			capacitySlider.SetValueWithoutNotify(Page.Capacity);
 			capacitySlider.onValueChanged.AddListener(UpdateCapacityValue);
@@ -268,10 +272,21 @@ namespace Nox.Instances.Runtime.client {
 
 		private TMP_InputField MakeInput(RectTransform parent, string placeholderKey, TMP_InputField.ContentType type) {
 			var go = Instantiate(_inputFieldAsset, parent);
-			go.AddComponent<LayoutElement>().preferredHeight = 40f;
+			go.AddComponent<LayoutElement>().preferredHeight = 60f;
 			Reference.GetReference("image_container", go)?.SetActive(false);
 			var field = Reference.GetComponent<TMP_InputField>("input", go);
 			field.contentType = type;
+			var placeholder = Reference.GetComponent<TextLanguage>("input_placeholder", go);
+			if (placeholder)
+				placeholder.UpdateText(placeholderKey);
+			return field;
+		}
+
+		private TMP_InputField MakeTextArea(RectTransform parent, string placeholderKey) {
+			var go = Instantiate(_textAreaAsset, parent);
+			go.AddComponent<LayoutElement>().preferredHeight = 360f;
+			var field = Reference.GetComponent<TMP_InputField>("input", go);
+			field.lineType = TMP_InputField.LineType.MultiLineNewline;
 			var placeholder = Reference.GetComponent<TextLanguage>("input_placeholder", go);
 			if (placeholder)
 				placeholder.UpdateText(placeholderKey);
@@ -295,7 +310,7 @@ namespace Nox.Instances.Runtime.client {
 				capacityType.UpdateText(
 					v == 0
 						? "instance.create.capacity.default"
-						: v == ushort.MaxValue
+						: v >= MaxCapacity
 							? "instance.create.capacity.unlimited"
 							: "instance.create.capacity.slots"
 				);
@@ -422,7 +437,7 @@ namespace Nox.Instances.Runtime.client {
 
 			var request = new CreateInstanceRequest {
 				World       = FormatWorldIdentifier(Page.World, Page.Version),
-				Capacity    = capacitySlider ? (ushort)Mathf.RoundToInt(capacitySlider.value) : Page.Capacity,
+				Capacity    = GetCapacity(),
 				Name        = shortNameField ? shortNameField.text : Page.ShortName,
 				Title       = titleField ? titleField.text : Page.Title,
 				Description = descriptionField ? descriptionField.text : Page.Description,
@@ -439,6 +454,13 @@ namespace Nox.Instances.Runtime.client {
 			}
 
 			Page.GoToInstance(instance);
+		}
+
+		private ushort GetCapacity() {
+			if (!capacitySlider) return Page.Capacity;
+			var v = Mathf.RoundToInt(capacitySlider.value);
+			if (v <= 0) return 0;
+			return v >= MaxCapacity ? ushort.MaxValue : (ushort)v;
 		}
 
 		private static string FormatWorldIdentifier(IWorld world, ushort version) {
