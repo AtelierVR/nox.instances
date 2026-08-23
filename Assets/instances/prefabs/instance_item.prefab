@@ -161,6 +161,7 @@ MonoBehaviour:
   m_VerticalAlignment: 8192
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -329,6 +330,7 @@ GameObject:
   - component: {fileID: 8606869912573283435}
   - component: {fileID: 4758163905026648652}
   - component: {fileID: 7263578361421179951}
+  - component: {fileID: 5022788146563360905}
   m_Layer: 5
   m_Name: GameObject
   m_TagString: Untagged
@@ -393,6 +395,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5022788146563360905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1632628675606738977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f59cd1634d9964047b4f6c2b99ccd1c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Nox.CCK.Network::Nox.CCK.Network.NetworkImage
+  _url: 
+  _sizeMultiplier: 4
 --- !u!1 &7635183080409224767
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,6 +603,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -927,7 +944,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3369243072328179330, guid: ae6bb34d3dbbf7d4899f9dc7dc001f50, type: 3}
       propertyPath: m_Name
-      value: instance
+      value: instance_item
       objectReference: {fileID: 0}
     - target: {fileID: 3369243072328179330, guid: ae6bb34d3dbbf7d4899f9dc7dc001f50, type: 3}
       propertyPath: m_IsActive

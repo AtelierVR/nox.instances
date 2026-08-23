@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Nox.CCK.Language;
+using Nox.CCK.Network;
 using Nox.CCK.Search;
 using Nox.CCK.Sessions;
 using Nox.CCK.Utils;
@@ -20,17 +21,17 @@ using Transform = UnityEngine.Transform;
 
 namespace Nox.Instances.Runtime.client {
 	public class InstanceComponent : MonoBehaviour {
-		public GameObject withThumbnail;
-		public GameObject withoutThumbnail;
-		public Image thumbnail;
-		public TextLanguage title;
-		public TextLanguage identifier;
-		public TextLanguage label;
-		public Image labelIcon;
-		public RectTransform content;
-		public InstancePage Page;
-		private CancellationTokenSource _thumbnailTokenSource;
-		private CancellationTokenSource _playerListTokenSource;
+		public  InstanceComponent reference;
+		public  GameObject         withThumbnail;
+		public  GameObject         withoutThumbnail;
+		public  Image              thumbnail;
+		public  TextLanguage       title;
+		public  TextLanguage       identifier;
+		public  TextLanguage       label;
+		public  Image              labelIcon;
+		public  RectTransform      content;
+		public  InstancePage       Page;
+		private NetworkImage       _thumbnailNetworkImage;
 		public RectTransform playerList;
 		public GameObject playerInfobox;
 		public GameObject playerListContainer;
@@ -96,43 +97,28 @@ namespace Nox.Instances.Runtime.client {
 				descriptionContainer.SetActive(false);
 
 
-			UpdateThumbnail(instance, world).Forget();
+		UpdateThumbnail(instance, world);
 			UpdatePlayerList(instance).Forget();
 			UpdateJoinButton(instance);
 			HoverCache(_isCachedHover);
 		}
 
-		private async UniTask UpdateThumbnail(IInstance instance, IWorld world) {
-			if (_thumbnailTokenSource != null) {
-				_thumbnailTokenSource?.Cancel();
-				_thumbnailTokenSource?.Dispose();
-			}
-
-			_thumbnailTokenSource = new CancellationTokenSource();
+		private void UpdateThumbnail(IInstance instance, IWorld world) {
 			var url = instance?.Thumbnail;
 			if (string.IsNullOrEmpty(url) && world != null)
 				url = world.Thumbnail;
 
-			if (!string.IsNullOrEmpty(url)) {
-				var texture = await Main.NetworkAPI
-					.FetchTexture(url)
-					.AttachExternalCancellation(_thumbnailTokenSource.Token);
-				if (texture) {
-					thumbnail.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-					withThumbnail.SetActive(true);
-					withoutThumbnail.SetActive(false);
-				} else {
-					thumbnail.sprite = null;
-					withThumbnail.SetActive(false);
-					withoutThumbnail.SetActive(true);
-				}
-			} else {
+			if (string.IsNullOrEmpty(url)) {
 				thumbnail.sprite = null;
 				withThumbnail.SetActive(false);
 				withoutThumbnail.SetActive(true);
+				return;
 			}
 
-			_thumbnailTokenSource = null;
+			_thumbnailNetworkImage = thumbnail.GetOrAddComponent<NetworkImage>();
+			_thumbnailNetworkImage.Url = url;
+			withThumbnail.SetActive(true);
+			withoutThumbnail.SetActive(false);
 		}
 
 		#region Cache Logic
@@ -423,6 +409,8 @@ namespace Nox.Instances.Runtime.client {
 			entry.callback.AddListener(_ => exit());
 			eventTrigger.triggers.Add(entry);
 		}
+
+		private CancellationTokenSource _playerListTokenSource;
 
 		public async UniTask UpdatePlayerList(IInstance instance) {
 			if (_playerListTokenSource != null) {

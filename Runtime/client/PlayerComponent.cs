@@ -1,9 +1,8 @@
 using System.Linq;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.CCK.Language;
+using Nox.CCK.Network;
 using Nox.CCK.Utils;
-using Nox.Instances;
 using Nox.Users;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,15 +30,15 @@ namespace Nox.Instances.Runtime.client {
 			return (instance, component);
 		}
 
-		public  InstanceComponent       reference;
-		public  TextLanguage            text;
-		public  Button                  button;
-		public  Image                   banner;
-		public  Image                   thumbnail;
-		public  RectTransform           thumbnailContainer;
-		private CancellationTokenSource _bannerTokenSource;
-		private CancellationTokenSource _thumbnailTokenSource;
-		private (IUser, IInstancePlayer)        _user;
+		public  InstanceComponent          reference;
+		public  TextLanguage               text;
+		public  Button                     button;
+		public  Image                      banner;
+		public  Image                      thumbnail;
+		public  RectTransform              thumbnailContainer;
+		private NetworkImage               _bannerNetworkImage;
+		private NetworkImage               _thumbnailNetworkImage;
+		private (IUser, IInstancePlayer)   _user;
 
 		public void UpdateContent((IUser, IInstancePlayer) user) {
 			_user = user;
@@ -52,8 +51,8 @@ namespace Nox.Instances.Runtime.client {
 				}
 			);
 
-			UpdateBanner(user).Forget();
-			UpdateThumbnail(user).Forget();
+			UpdateBanner(user);
+			UpdateThumbnail(user);
 		}
 
 		private void OnClick() {
@@ -63,41 +62,28 @@ namespace Nox.Instances.Runtime.client {
 			else Client.UiAPI?.SendGoto(reference.Page.MId, "users", "user", _user.Item1);
 		}
 
-		private async UniTask UpdateBanner((IUser, IInstancePlayer) user) {
-			if (_bannerTokenSource != null) {
-				_bannerTokenSource?.Cancel();
-				_bannerTokenSource?.Dispose();
+		private void UpdateBanner((IUser, IInstancePlayer) user) {
+			var url = user.Item1?.Banner;
+			if (string.IsNullOrEmpty(url)) {
+				banner.sprite = null;
+				return;
 			}
 
-			_bannerTokenSource = new CancellationTokenSource();
-			var url = user.Item1?.Banner;
-			if (!string.IsNullOrEmpty(url)) {
-				var texture = await Main.NetworkAPI.FetchTexture(url, token: _bannerTokenSource.Token);
-				banner.sprite = texture
-					? Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero)
-					: null;
-			} else banner.sprite = null;
-
-			_bannerTokenSource = null;
+			_bannerNetworkImage = banner.GetOrAddComponent<NetworkImage>();
+			_bannerNetworkImage.Url = url;
 		}
 
-		private async UniTask UpdateThumbnail((IUser, IInstancePlayer) user) {
-			if (_thumbnailTokenSource != null) {
-				_thumbnailTokenSource?.Cancel();
-				_thumbnailTokenSource?.Dispose();
+		private void UpdateThumbnail((IUser, IInstancePlayer) user) {
+			var url = user.Item1?.Thumbnail;
+			if (string.IsNullOrEmpty(url)) {
+				thumbnail.sprite = null;
+				thumbnailContainer.gameObject.SetActive(false);
+				return;
 			}
 
-			_thumbnailTokenSource = new CancellationTokenSource();
-			var url = user.Item1?.Thumbnail;
-			if (!string.IsNullOrEmpty(url)) {
-				var texture = await Main.NetworkAPI.FetchTexture(url, token: _thumbnailTokenSource.Token);
-				thumbnail.sprite = texture
-					? Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero)
-					: null;
-			} else thumbnail.sprite = null;
-
-			thumbnailContainer.gameObject.SetActive(thumbnail.sprite);
-			_thumbnailTokenSource = null;
+			_thumbnailNetworkImage = thumbnail.GetOrAddComponent<NetworkImage>();
+			_thumbnailNetworkImage.Url = url;
+			thumbnailContainer.gameObject.SetActive(true);
 		}
 	}
 }
