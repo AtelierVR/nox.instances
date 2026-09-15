@@ -16,7 +16,7 @@ namespace Nox.Instances.Runtime.client {
 
 		public static async UniTask<(GameObject go, PlayerComponent comp)> Generate(InstanceComponent reference, Transform parent, GameObject playerPrefab = null, (IUser, IInstancePlayer) user = default) {
 			playerPrefab ??= PlayerPrefab;
-			var instance  = (await InstantiateAsync(playerPrefab, parent)).First();
+			var instance  = await playerPrefab.InstantiateAsync(parent);
 			var component = instance.AddComponent<PlayerComponent>();
 			component.reference = reference;
 			component.text      = Reference.GetComponent<TextLanguage>("text", instance);
