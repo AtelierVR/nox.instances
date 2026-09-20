@@ -8,6 +8,7 @@ using Nox.CCK.Language;
 using Nox.CCK.Network;
 using Nox.CCK.Search;
 using Nox.CCK.Sessions;
+using Nox.CCK.Users;
 using Nox.CCK.Utils;
 using Nox.Instances;
 using Nox.Sessions;
@@ -484,9 +485,9 @@ namespace Nox.Instances.Runtime.client {
 			if (token.IsCancellationRequested)
 				return Array.Empty<(IUser, IInstancePlayer)>();
 
-			var request = Main.UserAPI
-				.MakeSearchRequest()
-				.SetIds(users.Select(p => p.Identifier).ToArray());
+			var request = new SearchRequest {
+				Ids = users.Select(p => p.Identifier).ToArray()
+			};
 
 			var response = await Main.UserAPI.Search(request, server)
 				.AttachExternalCancellation(token);
