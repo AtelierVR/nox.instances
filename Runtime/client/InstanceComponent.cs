@@ -10,7 +10,9 @@ using Nox.CCK.Search;
 using Nox.CCK.Sessions;
 using Nox.CCK.Users;
 using Nox.CCK.Utils;
+using Nox.Entities;
 using Nox.Instances;
+using Nox.Players;
 using Nox.Sessions;
 using Nox.Users;
 using Nox.Worlds;
@@ -39,9 +41,10 @@ namespace Nox.Instances.Runtime.client {
 		public GameObject descriptionContainer;
 		public TextLanguage descriptionText;
 		public RectTransform actions;
-		public Image joinIcon;
-		public TextLanguage joinLabel;
-		public Button joinButton;
+		public Image          joinIcon;
+		public TextLanguage   joinLabel;
+		public Button         joinButton;
+		public Slider         joinProgress;
 
 		// Cache Logic
 		private bool _isCachedHover;
@@ -189,85 +192,201 @@ namespace Nox.Instances.Runtime.client {
 			if (instance == null) {
 				joinButton.interactable = false;
 				joinLabel.UpdateText("instance.join.error");
+				SetJoinProgress(0f);
 				return;
 			}
 
-			// Vérifier si on a des données de connexion
+			// Already connected: allow rejoining.
+			var connected = FindConnectedSession(instance);
+			if (connected != null) {
+				joinButton.interactable = true;
+				joinLabel.UpdateText("instance.join.rejoin");
+				SetJoinIcon("ui:icons/refresh.png");
+				SetJoinProgress(0f);
+				return;
+			}
+
+			// Check that we have connection data
 			var connectionData = instance.Connection;
 			if (connectionData == null) {
 				joinButton.interactable = false;
 				joinLabel.UpdateText("instance.join.not_joinable");
+				SetJoinProgress(0f);
 				return;
 			}
 
-			// Vérifier si on est déjà connecté à cette instance
-			ISession session = null;
+			// A session exists but is not connected yet.
+			// The button allows cancelling it only when the current state allows it,
+			// otherwise we just show a connecting text.
+			var pending = FindPendingSession(instance);
+			if (pending != null) {
+				SetJoinProgress(pending.State.Progress);
+				if (pending.State.Cancelable) {
+					joinButton.interactable = true;
+					joinLabel.UpdateText("instance.join.cancel");
+					SetJoinIcon("ui:icons/cancel.png");
+				} else {
+					joinButton.interactable = false;
+					joinLabel.UpdateText("instance.join.connecting");
+					SetJoinIcon("ui:icons/distance.png");
+				}
+				return;
+			}
+
+			joinButton.interactable = true;
+			joinLabel.UpdateText("instance.join");
+			SetJoinIcon("ui:icons/distance.png");
+			SetJoinProgress(0f);
+		}
+
+		/// <summary>
+		/// Find the session matching the given instance that is still in progress
+		/// (not finished yet). Stale/disposed sessions are ignored.
+		/// </summary>
+		private static ISession FindPendingSession(IInstance instance) {
+			if (instance == null)
+				return null;
 			foreach (var s in Main.SessionAPI?.GetSessions() ?? Array.Empty<ISession>()) {
 				if (!s.GetInstance().Equals(instance.Identifier))
 					continue;
-				session = s;
-				break;
+				if (_cancelledSessions.Contains(s))
+					continue;
+				if (s.State.IsFinished())
+					continue;
+				return s;
 			}
 
-			if (session == null) {
-				joinButton.interactable = true;
-				joinLabel.UpdateText("instance.join");
+			return null;
+		}
+
+		/// <summary>
+		/// Find the session matching the given instance that is currently connected.
+		/// A session whose state is ready but whose network connection is down
+		/// (e.g. after being disposed) does not count as connected.
+		/// </summary>
+		private static ISession FindConnectedSession(IInstance instance) {
+			if (instance == null)
+				return null;
+			foreach (var s in Main.SessionAPI?.GetSessions() ?? Array.Empty<ISession>()) {
+				if (!s.GetInstance().Equals(instance.Identifier))
+					continue;
+				if (_cancelledSessions.Contains(s))
+					continue;
+				if (!s.State.IsReady())
+					continue;
+				if (s is INetSession net && !net.IsConnected)
+					continue;
+				return s;
+			}
+
+			return null;
+		}
+
+		private static readonly HashSet<ISession> _cancelledSessions = new();
+
+		private string _lastJoinIcon = "ui:icons/distance.png";
+
+		private void SetJoinIcon(string icon) {
+			if (_lastJoinIcon == icon)
 				return;
-			}
+			joinIcon.sprite = Client.GetAsset<Sprite>(_lastJoinIcon = icon);
+		}
 
-			if (session.State.IsReady()) {
-				joinButton.interactable = false;
-				joinLabel.UpdateText("instance.join.already_connected");
-			} else if (!session.State.IsFinished()) {
-				joinButton.interactable = false;
-				joinLabel.UpdateText("instance.join.connecting");
-			} else {
-				joinButton.interactable = true;
-				joinLabel.UpdateText("instance.join");
-			}
+		private float _lastJoinProgress = -1f;
+
+		/// <summary>
+		/// Updates the join button progress bar from the session state progress.
+		/// <see cref="IState.Progress"/> is -1 when not applicable, which is shown as 0.
+		/// </summary>
+		private void SetJoinProgress(float progress) {
+			if (joinProgress == null)
+				return;
+
+			var value = Mathf.Clamp01(progress < 0f ? 0f : progress);
+			if (Mathf.Approximately(_lastJoinProgress, value))
+				return;
+
+			_lastJoinProgress = value;
+			joinProgress.value = value;
+		}
+
+		private string _lastPlayerListSessionId;
+
+		/// <summary>
+		/// Called when a session event occurs (<c>session_added</c>, <c>session_removed</c>,
+		/// <c>session_state_changed</c>). Always refreshes the join button (including the
+		/// connection progress), and refreshes the player list only when the connected
+		/// session actually changed.
+		/// </summary>
+		public void OnSessionChanged() {
+			var instance = Page?.Instance;
+			UpdateJoinButton(instance);
+
+			var session = FindConnectedSession(instance);
+			var id      = session?.Id;
+			if (_lastPlayerListSessionId == id)
+				return;
+
+			_lastPlayerListSessionId = id;
+			UpdatePlayerList(instance).Forget();
 		}
 
 		private void OnJoinClicked() {
-			if (Page.Instance == null)
+			var instance = Page?.Instance;
+			if (instance == null)
 				return;
 
-			// Vérifier si on a des données de connexion
-			var connectionData = Page.Instance.Connection;
+			// Already connected -> rejoin.
+			var connected = FindConnectedSession(instance);
+			if (connected != null) {
+				RejoinSessionAsync(instance, connected);
+				return;
+			}
+
+			// Connection in progress -> cancel (when the current state allows it).
+			var pending = FindPendingSession(instance);
+			if (pending != null) {
+				if (pending.State.Cancelable)
+					CancelSessionAsync(instance, pending).Forget();
+				return;
+			}
+
+			// Otherwise -> connect.
+			Join(instance);
+		}
+
+		/// <summary>
+		/// Create and connect a new session for the given instance.
+		/// </summary>
+		private void Join(IInstance instance) {
+			if (instance == null)
+				return;
+
+			// Check that we have connection data
+			var connectionData = instance.Connection;
 			if (connectionData == null) {
 				Logger.LogWarning("Cannot join instance: no connection data available");
 				return;
 			}
-             
-             			// Vérifier si on est déjà connecté à cette instance
-             			var sessions = Main.SessionAPI?.GetSessions();
-             			if (sessions != null) {
-             				foreach (var session in sessions) {
-             					var sessionInstance = session.GetInstance();
-             					if (!sessionInstance.Equals(Page.Instance.Identifier))
-             						continue;
-             					Logger.LogWarning("Cannot join instance: already connected to this instance");
-             					return;
-             				}
-             			}
 
-			var th = Page.Instance.Thumbnail;
-			if (string.IsNullOrEmpty(th) && Page.World != null)
+			var th = instance.Thumbnail;
+			if (string.IsNullOrEmpty(th) && Page?.World != null)
 				th = Page.World.Thumbnail;
 
-			// Tout est OK, on peut joindre
+			// Everything is fine, we can join
 			Main.SessionAPI?.TryMake(
 				"external:" + connectionData.GetMethod(),
 				new Dictionary<string, object> {
 					{ "set_current", true },
-					{ "instance", Page.Instance.Identifier }, {
+					{ "instance", instance.Identifier }, {
 						"title",
-						Page.Instance.Title
-						?? Page.World?.Title
-						?? Page.Instance.Identifier.ToString()
+						instance.Title
+						?? Page?.World?.Title
+						?? instance.Identifier.ToString()
 					}, {
 						"short_name",
-						Page.Instance.Name
-						?? Page.Instance.Identifier.ToString()
+						instance.Name
+						?? instance.Identifier.ToString()
 					}, {
 						"thumbnail",
 						Main.NetworkAPI.FetchTexture(th)
@@ -275,6 +394,46 @@ namespace Nox.Instances.Runtime.client {
 					{ "data", connectionData.GetData<JObject>() }
 				}, out var _
 			);
+		}
+
+		/// <summary>
+		/// Connect again to the instance. The previous session is not disposed here:
+		/// the new one becomes current (<c>set_current</c>) and
+		/// <see cref="ISessionAPI.SetCurrent"/> deselects, disposes and unregisters it.
+		/// This keeps the rejoin immediate (and therefore cancellable).
+		/// </summary>
+		private void RejoinSessionAsync(IInstance instance, ISession session) {
+			// Just mark the previous session as abandoned so the UI immediately
+			// offers the state of the new connection.
+			if (session != null)
+				_cancelledSessions.Add(session);
+
+			Join(instance);
+			UpdateJoinButton(instance);
+		}
+
+		/// <summary>
+		/// Closes the given session through the session API: a current session is handed
+		/// over to <see cref="ISessionAPI.SetCurrent"/>, which disposes and unregisters it;
+		/// any other (e.g. in-progress) session is disposed directly.
+		/// </summary>
+		private static async UniTask CloseSessionAsync(ISession session) {
+			if (session == null)
+				return;
+
+			_cancelledSessions.Add(session);
+
+			var api = Main.SessionAPI;
+			if (api != null)
+				await api.Close(session.Id);
+		}
+
+		/// <summary>
+		/// Cancel/disconnect an in-progress session of the instance.
+		/// </summary>
+		private async UniTask CancelSessionAsync(IInstance instance, ISession session) {
+			await CloseSessionAsync(session);
+			UpdateJoinButton(instance);
 		}
 
 		public static (GameObject, InstanceComponent) Generate(InstancePage instancePage, RectTransform parent) {
@@ -333,7 +492,7 @@ namespace Nox.Instances.Runtime.client {
 			Reference.GetComponent<TextLanguage>("text", boxActions).UpdateText("instance.about.actions");
 			component.actions = Reference.GetComponent<RectTransform>("content", Instantiate(actionContainerAsset, Reference.GetComponent<RectTransform>("content", boxActions)));
 
-			// Bouton Join
+			// Join button (Connect / Cancel / Rejoin depending on the state)
 			var join             = Instantiate(actionButtonAsset, component.actions);
 			var joinEventTrigger = Reference.GetComponent<EventTrigger>("button", join);
 			component.joinButton      = Reference.GetComponent<Button>("button", join);
@@ -341,14 +500,15 @@ namespace Nox.Instances.Runtime.client {
 			component.joinLabel       = Reference.GetComponent<TextLanguage>("text", join);
 			component.joinIcon.sprite = Client.GetAsset<Sprite>("ui:icons/distance.png");
 			component.joinLabel.UpdateText("instance.join");
+			component.joinProgress = Reference.GetComponent<Slider>("progress", join);
 			SetupEvents(
 				joinEventTrigger,
 				() => component.OnJoinClicked(),
-				() => { }, // Pas d'effet hover pour l'instant
+				() => { }, // No hover effect for now
 				() => { }
 			);
 
-			// Bouton Cache
+			// Cache button
 			var cache             = Instantiate(actionButtonAsset, component.actions);
 			var cacheEventTrigger = Reference.GetComponent<EventTrigger>("button", cache);
 			component.cacheButton   = Reference.GetComponent<Button>("button", cache);
@@ -421,16 +581,39 @@ namespace Nox.Instances.Runtime.client {
 			}
 
 			if (instance == null) {
+				UnsubscribeSessionPlayers();
 				playerInfobox.SetActive(true);
 				playerListContainer.SetActive(false);
 				return;
 			}
 
-
 			_playerListTokenSource = new CancellationTokenSource();
+			var token = _playerListTokenSource.Token;
+
+			// When connected to the instance, the player list mirrors the session's
+			// and updates automatically (join/leave).
+			var session = FindConnectedSession(instance);
+			if (session != null) {
+				SubscribeSessionPlayers(session);
+				await RenderPlayers(instance, GetSessionPlayers(session), token);
+				return;
+			}
+
+			UnsubscribeSessionPlayers();
+			await RenderPlayers(instance, instance.Players, token);
+		}
+
+		/// <summary>
+		/// Players currently present in the session, exposed as instance players.
+		/// </summary>
+		private static IInstancePlayer[] GetSessionPlayers(ISession session)
+			=> (session.Entities?.GetEntities<IPlayer>() ?? Array.Empty<IPlayer>())
+				.Select(p => (IInstancePlayer)new SessionInstancePlayer(p))
+				.ToArray();
+
+		private async UniTask RenderPlayers(IInstance instance, IInstancePlayer[] players, CancellationToken token) {
 			var tasks = new List<UniTask<(IUser, IInstancePlayer)[]>>();
 
-			var players = instance.Players;
 			var playersByServer = players
 				.GroupBy(p => p.Identifier.Server ?? Identifier.LOCAL_SERVER)
 				.ToDictionary(g => g.Key, g => g.ToArray());
@@ -440,7 +623,7 @@ namespace Nox.Instances.Runtime.client {
 			var prefab  = PlayerComponent.PlayerPrefab;
 			var action = new Action<(IUser, IInstancePlayer)[]>(
 				users => {
-					Logger.LogDebug($"Found {users.Length} instances for world {instance.Title} ({instance.Identifier})");
+					Logger.LogDebug($"Found {users.Length} players for world {instance.Title} ({instance.Identifier})");
 					if (isFirst)
 						foreach (Transform child in playerList.transform)
 							Destroy(child.gameObject);
@@ -459,10 +642,8 @@ namespace Nox.Instances.Runtime.client {
 			);
 
 			foreach (var (server, users) in playersByServer) {
-				if (_playerListTokenSource.IsCancellationRequested) {
-					_playerListTokenSource = null;
+				if (token.IsCancellationRequested)
 					return;
-				}
 
 				if (users.Length == 0)
 					continue;
@@ -470,16 +651,64 @@ namespace Nox.Instances.Runtime.client {
 				if (server == Identifier.LOCAL_SERVER) {
 					action(users.Select(u => ((IUser)null, u)).ToArray());
 				} else
-					tasks.Add(SearchPlayers(users, server, _playerListTokenSource.Token, action));
+					tasks.Add(SearchPlayers(users, server, token, action));
 			}
 
 			await UniTask.WhenAll(tasks);
+			if (token.IsCancellationRequested)
+				return;
+
 			if (isEmpty) {
 				playerInfobox.SetActive(true);
 				playerListContainer.SetActive(false);
 			} else
 				UpdateLayout.UpdateImmediate(playerList);
 		}
+
+		#region Session Players
+
+		private ISession _playerListSession;
+
+		private void SubscribeSessionPlayers(ISession session) {
+			if (_playerListSession == session)
+				return;
+			UnsubscribeSessionPlayers();
+			_playerListSession = session;
+			session.Entities.OnEntityAdded.AddListener(OnSessionEntityChanged);
+			session.Entities.OnEntityRemoved.AddListener(OnSessionEntityChanged);
+		}
+
+		private void UnsubscribeSessionPlayers() {
+			if (_playerListSession == null)
+				return;
+			_playerListSession.Entities.OnEntityAdded.RemoveListener(OnSessionEntityChanged);
+			_playerListSession.Entities.OnEntityRemoved.RemoveListener(OnSessionEntityChanged);
+			_playerListSession = null;
+		}
+
+		private void OnSessionEntityChanged(IEntity entity) {
+			if (entity is not IPlayer)
+				return;
+			UpdatePlayerList(Page?.Instance).Forget();
+		}
+
+		private void OnDestroy()
+			=> UnsubscribeSessionPlayers();
+
+		private sealed class SessionInstancePlayer : IInstancePlayer {
+			private readonly IPlayer _player;
+
+			public SessionInstancePlayer(IPlayer player)
+				=> _player = player;
+
+			public Identifier Identifier
+				=> _player.Identifier;
+
+			public string Display
+				=> _player.Display;
+		}
+
+		#endregion
 
 		private async UniTask<(IUser, IInstancePlayer)[]> SearchPlayers(IInstancePlayer[] users, string server, CancellationToken token, Action<(IUser, IInstancePlayer)[]> callback = null) {
 			if (token.IsCancellationRequested)

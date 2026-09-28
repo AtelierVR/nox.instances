@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using Nox.CCK.Mods.Events;
 using Nox.CCK.Utils;
 using Nox.CCK.Worlds;
-using Nox.Instances;
 using Nox.UI;
 using Nox.Worlds;
 using UnityEngine;
@@ -221,7 +220,7 @@ namespace Nox.Instances.Runtime.client {
 			=> _component.UpdateDownloading(IsDownloading());
 
 		private void OnSessionUpdate(EventData context)
-			=> _component.UpdateJoinButton(Instance);
+			=> _component.OnSessionChanged();
 
 		public void OnDisplay(IPage lastPage) {
 			if (Instance != null) {

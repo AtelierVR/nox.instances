@@ -51,8 +51,14 @@ MonoBehaviour:
       value: "Join Instance"
     - key: instance.join.already_connected
       value: "Connected"
+    - key: instance.join.rejoin
+      value: "Rejoin"
+    - key: instance.join.cancel
+      value: "Cancel"
     - key: instance.join.not_joinable
       value: "Not Joinable"
+    - key: instance.join.connecting
+      value: "Connecting..."
     - key: instance.join.error
       value: "Error"
     - key: instance.cache.none
@@ -127,6 +133,12 @@ MonoBehaviour:
       value: "This server cannot host instances."
   - IETF: fr-FR
     entries:
+    - key: instance.join.rejoin
+      value: "Rejoindre"
+    - key: instance.join.cancel
+      value: "Annuler"
+    - key: instance.join.connecting
+      value: "Connexion..."
     - key: instance.create.title
       value: "Créer une instance"
     - key: instance.create.mode
