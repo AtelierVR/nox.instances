@@ -80,8 +80,10 @@ namespace Nox.Instances.Runtime.client {
 			if (instance == null)
 				return;
 
-			title.UpdateText("instance.title", new[] { instance.Title ?? world?.Title ?? instance.Identifier.ToString() });
-			label.UpdateText("instance.about.title", new[] { instance.Title ?? world?.Title ?? instance.Identifier.ToString() });
+			// An instance may be untitled / have no description: fall back on its world.
+			var titleValue = GetTitle(instance, world);
+			title.UpdateText("instance.title", new[] { titleValue });
+			label.UpdateText("instance.about.title", new[] { titleValue });
 			identifier.UpdateText(
 				"instance.identifier", new[] {
 					instance.Identifier.ToString(),
@@ -90,9 +92,7 @@ namespace Nox.Instances.Runtime.client {
 				}
 			);
 
-			var description = instance.Description;
-			if (string.IsNullOrEmpty(description) && world != null)
-				description = world.Description;
+			var description = GetDescription(instance, world);
 
 			if (!string.IsNullOrEmpty(description)) {
 				descriptionText.SetMarkdown(description);
@@ -107,10 +107,44 @@ namespace Nox.Instances.Runtime.client {
 			HoverCache(_isCachedHover);
 		}
 
+		/// <summary>
+		/// The instance title, falling back on the linked world one when the instance is
+		/// untitled (null or empty).
+		/// </summary>
+		private static string GetTitle(IInstance instance, IWorld world) {
+			if (!string.IsNullOrEmpty(instance?.Title))
+				return instance.Title;
+			if (!string.IsNullOrEmpty(world?.Title))
+				return world.Title;
+			return instance?.Identifier.ToString();
+		}
+
+		/// <summary>
+		/// The instance description, falling back on the linked world one when the instance
+		/// has none (null or empty).
+		/// </summary>
+		private static string GetDescription(IInstance instance, IWorld world) {
+			if (!string.IsNullOrEmpty(instance?.Description))
+				return instance.Description;
+			if (!string.IsNullOrEmpty(world?.Description))
+				return world.Description;
+			return null;
+		}
+
+		/// <summary>
+		/// The instance thumbnail url, falling back on the linked world one when the
+		/// instance has none (null or empty).
+		/// </summary>
+		private static string GetThumbnail(IInstance instance, IWorld world) {
+			if (!string.IsNullOrEmpty(instance?.Thumbnail))
+				return instance.Thumbnail;
+			return !string.IsNullOrEmpty(world?.Thumbnail)
+				? world.Thumbnail
+				: null;
+		}
+
 		private void UpdateThumbnail(IInstance instance, IWorld world) {
-			var url = instance?.Thumbnail;
-			if (string.IsNullOrEmpty(url) && world != null)
-				url = world.Thumbnail;
+			var url = GetThumbnail(instance, world);
 
 			if (string.IsNullOrEmpty(url)) {
 				thumbnail.sprite = null;
@@ -369,9 +403,7 @@ namespace Nox.Instances.Runtime.client {
 				return;
 			}
 
-			var th = instance.Thumbnail;
-			if (string.IsNullOrEmpty(th) && Page?.World != null)
-				th = Page.World.Thumbnail;
+			var th = GetThumbnail(instance, Page?.World);
 
 			// Everything is fine, we can join
 			Main.SessionAPI?.TryMake(
@@ -380,9 +412,7 @@ namespace Nox.Instances.Runtime.client {
 					{ "set_current", true },
 					{ "instance", instance.Identifier }, {
 						"title",
-						instance.Title
-						?? Page?.World?.Title
-						?? instance.Identifier.ToString()
+						GetTitle(instance, Page?.World)
 					}, {
 						"short_name",
 						instance.Name
