@@ -2,7 +2,6 @@ using Nox.Instances.Runtime.client;
 using Cysharp.Threading.Tasks;
 using Nox.Search;
 using Nox.Worlds;
-using UnityEngine;
 
 namespace Nox.Instances.Runtime.search {
 	public class SearchData : IResultData {
@@ -15,8 +14,14 @@ namespace Nox.Instances.Runtime.search {
 		public string[] TitleArguments
 			=> new[] { GetTitle() };
 
-		public UniTask<Texture2D> Image
-			=> FetchImage();
+		public UniTask<ImageSource> Image
+			=> UniTask.FromResult(
+				ImageSource.FromUrl(
+					!string.IsNullOrEmpty(Reference.Thumbnail)
+						? Reference.Thumbnail
+						: World?.Thumbnail
+				)
+			);
 
 		public void OnClick(int menuId)
 			=> Client.UiAPI?.SendGoto(menuId, InstancePage.GetStaticKey(), "instance", Reference, World);
@@ -31,19 +36,6 @@ namespace Nox.Instances.Runtime.search {
 			if (!string.IsNullOrEmpty(World?.Title))
 				return World.Title;
 			return Reference.Id.ToString();
-		}
-
-		/// <summary>
-		/// The instance thumbnail, falling back on the linked world one (an instance can
-		/// have no image, in which case the world thumbnail is used).
-		/// </summary>
-		private UniTask<Texture2D> FetchImage() {
-			var url = !string.IsNullOrEmpty(Reference.Thumbnail)
-				? Reference.Thumbnail
-				: World?.Thumbnail;
-			return string.IsNullOrEmpty(url)
-				? UniTask.FromResult<Texture2D>(null)
-				: Main.NetworkAPI.FetchTexture(url);
 		}
 	}
 }
