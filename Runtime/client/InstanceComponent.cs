@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Nox.CCK.Convertors;
 using Nox.CCK.Language;
 using Nox.CCK.Network;
 using Nox.CCK.Search;
@@ -11,10 +12,12 @@ using Nox.CCK.Sessions;
 using Nox.CCK.Users;
 using Nox.CCK.Utils;
 using Nox.Entities;
+using Nox.CCK.Network.Assets;
 using Nox.Instances;
 using Nox.Players;
 using Nox.Sessions;
 using Nox.Users;
+using Nox.Network.Assets;
 using Nox.Worlds;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -76,7 +79,7 @@ namespace Nox.Instances.Runtime.client {
 			descriptionContainer.SetActive(false);
 		}
 
-		public void UpdateContent(IInstance instance, IWorld world, IWorldAsset asset) {
+		public void UpdateContent(IInstance instance, IWorld world, IAssetFile asset) {
 			if (instance == null)
 				return;
 
@@ -114,9 +117,8 @@ namespace Nox.Instances.Runtime.client {
 		private static string GetTitle(IInstance instance, IWorld world) {
 			if (!string.IsNullOrEmpty(instance?.Title))
 				return instance.Title;
-			if (!string.IsNullOrEmpty(world?.Title))
-				return world.Title;
-			return instance?.Identifier.ToString();
+			var title = world?.Title?.Resolve();
+			return !string.IsNullOrEmpty(title) ? title : instance?.Identifier.ToString();
 		}
 
 		/// <summary>
@@ -126,21 +128,17 @@ namespace Nox.Instances.Runtime.client {
 		private static string GetDescription(IInstance instance, IWorld world) {
 			if (!string.IsNullOrEmpty(instance?.Description))
 				return instance.Description;
-			if (!string.IsNullOrEmpty(world?.Description))
-				return world.Description;
-			return null;
+			return world?.Description?.Resolve();
 		}
 
 		/// <summary>
-		/// The instance thumbnail url, falling back on the linked world one when the
+		/// The instance thumbnail url, falling back on the linked world cover when the
 		/// instance has none (null or empty).
 		/// </summary>
 		private static string GetThumbnail(IInstance instance, IWorld world) {
 			if (!string.IsNullOrEmpty(instance?.Thumbnail))
 				return instance.Thumbnail;
-			return !string.IsNullOrEmpty(world?.Thumbnail)
-				? world.Thumbnail
-				: null;
+			return world?.BestImage(1f)?.Url;   // square card slot
 		}
 
 		private void UpdateThumbnail(IInstance instance, IWorld world) {

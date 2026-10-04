@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Nox.CCK.Convertors;
 using Nox.CCK.Language;
 using Nox.CCK.Utils;
+using Nox.CCK.Worlds;
 using Nox.Instances.Runtime.Networks;
 using Nox.Servers;
 using Nox.UI;
@@ -231,13 +233,13 @@ namespace Nox.Instances.Runtime.client {
 		private void BuildTitleBox() {
 			MakeBox("instance.create.title.label", out var boxContent);
 			titleField = MakeInput(boxContent, "instance.create.title.placeholder", TMP_InputField.ContentType.Standard);
-			titleField.text = Page.Title ?? (Page.World?.Title ?? string.Empty);
+			titleField.text = Page.Title ?? Page.World?.Title?.Resolve() ?? string.Empty;
 		}
 
 		private void BuildDescriptionBox() {
 			MakeBox("instance.create.description.label", out var boxContent);
 			descriptionField = MakeTextArea(boxContent, "instance.create.description.placeholder");
-			descriptionField.text = Page.Description ?? (Page.World?.Description ?? string.Empty);
+			descriptionField.text = Page.Description ?? Page.World?.Description?.Resolve() ?? string.Empty;
 		}
 
 		private void BuildCapacityBox() {
@@ -431,10 +433,8 @@ namespace Nox.Instances.Runtime.client {
 
 			Page.World  = world;
 
-			if (world.Release != null && world.Release.Value != ushort.MaxValue)
-				Page.Version = world.Release.Value;
-			else
-				Page.Version = ushort.MaxValue;
+			var version = (ushort)(world.Release?.Value ?? ushort.MaxValue);
+			Page.Version = version == ushort.MaxValue ? ushort.MaxValue : version;
 
 			if (versionField)
 				versionField.text = Page.Version == ushort.MaxValue ? string.Empty : Page.Version.ToString();

@@ -1,9 +1,10 @@
 using System;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using Nox.CCK.Mods.Events;
 using Nox.CCK.Utils;
+using Nox.CCK.Network.Assets;
 using Nox.CCK.Worlds;
+using Nox.Network.Assets;
 using Nox.UI;
 using Nox.Worlds;
 using UnityEngine;
@@ -23,11 +24,11 @@ namespace Nox.Instances.Runtime.client {
 		private InstanceComponent _component;
 		private Identifier _identifier;
 		public IInstance Instance;
-		public IWorldAsset Asset;
+		public IAssetFile Asset;
+		public ushort Version = ushort.MaxValue;
 		public IWorld World;
 		private bool _isLoading;
 		private bool _isRefreshing;
-		public ushort Version = ushort.MaxValue;
 
 		private EventSubscription[] _events = Array.Empty<EventSubscription>();
 
@@ -55,7 +56,7 @@ namespace Nox.Instances.Runtime.client {
 					return OnPageByIdentifier(menu, context, Identifier.Parse(id2));
 				case "instance" when T(context, 1, out IInstance i0):
 					var w0 = T(context, 2, out IWorld world) ? world : null;
-					var a0 = T(context, 3, out IWorldAsset asset) ? asset : null;
+					var a0 = T(context, 3, out IAssetFile asset) ? asset : null;
 					return OnPageByInstance(menu, context, i0, w0, a0);
 			}
 
@@ -74,15 +75,15 @@ namespace Nox.Instances.Runtime.client {
 			return page;
 		}
 
-		private static InstancePage OnPageByInstance(IMenu menu, object[] context, IInstance instance, IWorld world, IWorldAsset asset) {
+		private static InstancePage OnPageByInstance(IMenu menu, object[] context, IInstance instance, IWorld world, IAssetFile asset) {
 			var page = new InstancePage {
 				MId         = menu.Id,
 				_context    = context,
 				_identifier = instance.Identifier,
 				Instance    = instance,
 				World       = world,
+				Version     = instance.World.GetVersion(),
 				Asset       = asset,
-				Version     = instance.World.GetVersion()
 			};
 			if (page.World == null)
 				page.FetchWorld(true, true).Forget();
@@ -132,13 +133,7 @@ namespace Nox.Instances.Runtime.client {
 		private async UniTask FetchAssetCore() {
 			if (Instance == null)
 				return;
-			var req = new AssetSearchRequest {
-				Engines   = new[] { EngineExtensions.CurrentEngine.GetEngineName() },
-				Platforms = new[] { PlatformExtensions.CurrentPlatform.GetPlatformName() },
-				Versions  = new[] { Version },
-				Limit     = 1
-			};
-			Asset = (await Main.WorldAPI.SearchAssets(Instance.World, req)).Items.FirstOrDefault();
+			Asset = await Main.WorldAPI.ResolveBundle(Instance.World);
 		}
 
 		private async UniTask FetchInstance(bool update = false) {
@@ -167,8 +162,8 @@ namespace Nox.Instances.Runtime.client {
 				return;
 			}
 
-			Main.WorldAPI?.RemoveFromCache(Asset.Hash);
-			Logger.Log($"Removed asset from cache: {Asset.Hash}");
+			Main.WorldAPI?.RemoveFromCache(Asset.CacheKey());
+			Logger.Log($"Removed asset from cache: {Asset.CacheKey()}");
 		}
 
 		public void CancelDownload()
@@ -185,7 +180,7 @@ namespace Nox.Instances.Runtime.client {
 				return;
 			}
 
-			Main.WorldAPI?.DownloadToCache(Asset.Url, Asset.Hash)?.Start().Forget();
+			Main.WorldAPI?.DownloadToCache(Asset.Url, Asset.CacheKey())?.Start().Forget();
 		}
 
 		public object[] GetContext()
@@ -239,10 +234,10 @@ namespace Nox.Instances.Runtime.client {
 		}
 
 		public bool InCache()
-			=> Asset != null && Main.WorldAPI?.HasInCache(Asset.Hash) == true;
+			=> Asset != null && Main.WorldAPI?.HasInCache(Asset.CacheKey()) == true;
 
 		private ICaching GetDownload()
-			=> Asset != null ? Main.WorldAPI?.GetDownload(Asset.Url, Asset.Hash) : null;
+			=> Asset != null ? Main.WorldAPI?.GetDownload(Asset.Url, Asset.CacheKey()) : null;
 
 		public (bool, float) IsDownloading() {
 			var cache = GetDownload();

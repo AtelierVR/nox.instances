@@ -2,6 +2,7 @@ using System;
 using Nox.CCK.Utils;
 using Nox.Instances;
 using Nox.UI;
+using Nox.Network.Assets;
 using Nox.Worlds;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
@@ -24,7 +25,7 @@ namespace Nox.Instances.Runtime.client {
 		private InstanceCreationComponent _component;
 
 		public  IWorld      World;
-		public  IWorldAsset Asset;
+		public  IAssetFile Asset;
 		public  string      Server;
 		public  ushort      Version = ushort.MaxValue;
 		public  string      Mode;
@@ -48,7 +49,7 @@ namespace Nox.Instances.Runtime.client {
 
 		internal static IPage OnGotoAction(IMenu menu, object[] context) {
 			if (!T(context, 0, out IWorld world)) return null;
-			var asset = T(context, 2, out IWorldAsset worldAsset) ? worldAsset : null;
+			var asset = T(context, 2, out IAssetFile worldAsset) ? worldAsset : null;
 			return OnPageByWorldForCreation(menu, context, world, asset);
 		}
 
@@ -56,7 +57,7 @@ namespace Nox.Instances.Runtime.client {
 		/// Context contract (arguments after menu id + page key):
 		/// 0 IWorld world
 		/// 1 ushort version (world version, ushort.MaxValue = auto)
-		/// 2 IWorldAsset asset
+		/// 2 IAssetFile asset
 		/// 3 string mode ("simple" | "advanced")
 		/// 4 string server
 		/// 5 string title
@@ -65,7 +66,7 @@ namespace Nox.Instances.Runtime.client {
 		/// 8 string[] tags
 		/// 9 string shortName
 		/// </summary>
-		private static InstanceCreationPage OnPageByWorldForCreation(IMenu menu, object[] context, IWorld world, IWorldAsset asset) {
+		private static InstanceCreationPage OnPageByWorldForCreation(IMenu menu, object[] context, IWorld world, IAssetFile asset) {
 			var version  = T(context, 1, out ushort v) ? v : ushort.MaxValue;
 			var mode     = T(context, 3, out string m) ? m : null;
 			var server   = T(context, 4, out string s) ? s : null;

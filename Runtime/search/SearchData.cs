@@ -1,4 +1,6 @@
+using Nox.CCK.Convertors;
 using Nox.Instances.Runtime.client;
+using Nox.CCK.Network.Assets;
 using Cysharp.Threading.Tasks;
 using Nox.Search;
 using Nox.Worlds;
@@ -19,7 +21,7 @@ namespace Nox.Instances.Runtime.search {
 				ImageSource.FromUrl(
 					!string.IsNullOrEmpty(Reference.Thumbnail)
 						? Reference.Thumbnail
-						: World?.Thumbnail
+						: World?.BestImage(1f)?.Url   // square result slot
 				)
 			);
 
@@ -33,9 +35,8 @@ namespace Nox.Instances.Runtime.search {
 		private string GetTitle() {
 			if (!string.IsNullOrEmpty(Reference.Title))
 				return Reference.Title;
-			if (!string.IsNullOrEmpty(World?.Title))
-				return World.Title;
-			return Reference.Id.ToString();
+			var title = World?.Title?.Resolve();
+			return !string.IsNullOrEmpty(title) ? title : Reference.Id.ToString();
 		}
 	}
 }
