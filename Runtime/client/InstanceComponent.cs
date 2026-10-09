@@ -29,14 +29,17 @@ namespace Nox.Instances.Runtime.client {
 		public  InstanceComponent reference;
 		public  GameObject         withThumbnail;
 		public  GameObject         withoutThumbnail;
-		public  Image              thumbnail;
+		public  GameObject         withBanner;
+		public  GameObject         withoutBanner;
+		public  Image              banner;
+		public  AspectRatioFitter  bannerAspect;
 		public  TextLanguage       title;
 		public  TextLanguage       identifier;
 		public  TextLanguage       label;
 		public  Image              labelIcon;
 		public  RectTransform      content;
 		public  InstancePage       Page;
-		private NetworkImage       _thumbnailNetworkImage;
+		private NetworkImage       _bannerNetworkImage;
 		public RectTransform playerList;
 		public GameObject playerInfobox;
 		public GameObject playerListContainer;
@@ -60,10 +63,12 @@ namespace Nox.Instances.Runtime.client {
 			title.UpdateText("instance.error");
 			identifier.UpdateText("instance.error");
 			label.UpdateText("instance.error");
-			thumbnail.sprite = null;
-			thumbnail.sprite = null;
+			banner.sprite = null;
+			banner.GetOrAddComponent<NetworkImage>().Url = null;
 			withThumbnail.SetActive(false);
-			withoutThumbnail.SetActive(true);
+			withoutThumbnail.SetActive(false);
+			withBanner.SetActive(false);
+			withoutBanner.SetActive(true);
 			descriptionContainer.SetActive(false);
 		}
 
@@ -71,10 +76,12 @@ namespace Nox.Instances.Runtime.client {
 			title.UpdateText("instance.loading");
 			identifier.UpdateText("instance.loading");
 			label.UpdateText("instance.loading");
-			thumbnail.sprite = null;
-			thumbnail.sprite = null;
+			banner.sprite = null;
+			banner.GetOrAddComponent<NetworkImage>().Url = null;
 			withThumbnail.SetActive(false);
-			withoutThumbnail.SetActive(true);
+			withoutThumbnail.SetActive(false);
+			withBanner.SetActive(false);
+			withoutBanner.SetActive(true);
 			descriptionContainer.SetActive(false);
 		}
 
@@ -103,7 +110,9 @@ namespace Nox.Instances.Runtime.client {
 				descriptionContainer.SetActive(false);
 
 
-		UpdateThumbnail(instance, world);
+			withThumbnail.SetActive(false);
+			withoutThumbnail.SetActive(false);
+			UpdateBanner(instance, world);
 			UpdatePlayerList(instance).Forget();
 			UpdateJoinButton(instance);
 			HoverCache(_isCachedHover);
@@ -131,7 +140,7 @@ namespace Nox.Instances.Runtime.client {
 		}
 
 		/// <summary>
-		/// The instance thumbnail url, falling back on the linked world cover when the
+		/// The instance banner url, falling back on the linked world cover when the
 		/// instance has none (null or empty).
 		/// </summary>
 		private static string GetThumbnail(IInstance instance, IWorld world) {
@@ -140,20 +149,22 @@ namespace Nox.Instances.Runtime.client {
 			return world?.BestImage(1f)?.Url;   // square card slot
 		}
 
-		private void UpdateThumbnail(IInstance instance, IWorld world) {
-			var url = GetThumbnail(instance, world);
+		private void UpdateBanner(IInstance instance, IWorld world) {
+			_bannerNetworkImage = banner.GetOrAddComponent<NetworkImage>();
 
+			var url = GetThumbnail(instance, world);
 			if (string.IsNullOrEmpty(url)) {
-				thumbnail.sprite = null;
-				withThumbnail.SetActive(false);
-				withoutThumbnail.SetActive(true);
+				banner.sprite = null;
+				_bannerNetworkImage.Url = null;
+				withBanner.SetActive(false);
+				withoutBanner.SetActive(false);
 				return;
 			}
 
-			_thumbnailNetworkImage = thumbnail.GetOrAddComponent<NetworkImage>();
-			_thumbnailNetworkImage.Url = url;
-			withThumbnail.SetActive(true);
-			withoutThumbnail.SetActive(false);
+			// Set the URL before activating so the NetworkImage starts loading on the first display.
+			_bannerNetworkImage.Url = url;
+			withoutBanner.SetActive(false);
+			withBanner.SetActive(true);
 		}
 
 		#region Cache Logic
@@ -484,14 +495,37 @@ namespace Nox.Instances.Runtime.client {
 			// generate profile
 			var container = Instantiate(containerAsset, splitContent);
 			var profile = Instantiate(
-				Client.GetAsset<GameObject>("prefabs/profile.prefab"),
+				Client.GetAsset<GameObject>("ui:prefabs/profile.prefab"),
 				Reference.GetComponent<RectTransform>("content", container)
 			);
-			component.identifier       = Reference.GetComponent<TextLanguage>("identifier", profile);
-			component.title            = Reference.GetComponent<TextLanguage>("title", profile);
-			component.thumbnail        = Reference.GetComponent<Image>("thumbnail", profile);
+			component.identifier    = Reference.GetComponent<TextLanguage>("identifier", profile);
+			component.title         = Reference.GetComponent<TextLanguage>("title", profile);
+			component.banner        = Reference.GetComponent<Image>("banner", profile);
+			component.bannerAspect  = Reference.GetComponent<AspectRatioFitter>("banner_aspect", profile);
+			component.withBanner    = Reference.GetReference("with_banner", profile);
+			component.withoutBanner = Reference.GetReference("without_banner", profile);
+
+			// Keep the banner aspect ratio in sync with the loaded texture.
+			var bannerNetworkImage = component.banner.GetOrAddComponent<NetworkImage>();
+			bannerNetworkImage.OnSuccess.AddListener(texture => {
+				if (texture.height > 0) {
+					component.bannerAspect.aspectRatio = (float)texture.width / texture.height;
+					component.withBanner.SetActive(true);
+					component.withoutBanner.SetActive(false);
+				}
+			});
+			bannerNetworkImage.OnError.AddListener(_ => {
+				// An empty URL means "no banner": keep the loading skeleton as-is.
+				if (string.IsNullOrEmpty(bannerNetworkImage.Url)) return;
+				component.withBanner.SetActive(false);
+				component.withoutBanner.SetActive(true);
+			});
+
+			// This page uses the banner as its main image: keep the profile thumbnail (avatar) hidden.
 			component.withThumbnail    = Reference.GetReference("with_thumbnail", profile);
 			component.withoutThumbnail = Reference.GetReference("without_thumbnail", profile);
+			component.withThumbnail.SetActive(false);
+			component.withoutThumbnail.SetActive(false);
 
 			// generate dashboard
 			container = Instantiate(Client.GetAsset<GameObject>("ui:prefabs/container_full.prefab"), splitContent);
