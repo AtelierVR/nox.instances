@@ -13,7 +13,6 @@ using Nox.CCK.Users;
 using Nox.CCK.Utils;
 using Nox.Entities;
 using Nox.CCK.Network.Assets;
-using Nox.Instances;
 using Nox.Players;
 using Nox.Sessions;
 using Nox.Users;
@@ -477,7 +476,7 @@ namespace Nox.Instances.Runtime.client {
 
 			var component = content.AddComponent<InstanceComponent>();
 			component.Page = instancePage;
-			content.name   = $"[{instancePage.GetKey()}_{content.GetEntityId().GetHashCode()}]";
+			content.name   = $"[{instancePage.GetKey()}_{content.GetId()}]";
 
 			var splitContent   = Reference.GetComponent<RectTransform>("content", content);
 			var containerAsset = Client.GetAsset<GameObject>("ui:prefabs/container.prefab");

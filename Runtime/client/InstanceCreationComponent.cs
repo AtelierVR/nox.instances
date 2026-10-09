@@ -5,10 +5,7 @@ using Cysharp.Threading.Tasks;
 using Nox.CCK.Convertors;
 using Nox.CCK.Language;
 using Nox.CCK.Utils;
-using Nox.CCK.Worlds;
 using Nox.Instances.Runtime.Networks;
-using Nox.Servers;
-using Nox.UI;
 using Nox.Worlds;
 using TMPro;
 using UnityEngine;
@@ -73,7 +70,7 @@ namespace Nox.Instances.Runtime.client {
 			var content = Instantiate(Client.GetAsset<GameObject>("ui:prefabs/split.prefab"), parent);
 			var component = content.AddComponent<InstanceCreationComponent>();
 			component.Page = page;
-			content.name   = $"[{page.GetKey()}_{content.GetEntityId().GetHashCode()}]";
+			content.name   = $"[{page.GetKey()}_{content.GetId()}]";
 
 			component._boxAsset        = Client.GetAsset<GameObject>("ui:prefabs/box.prefab");
 			component._listAsset       = listAsset;
