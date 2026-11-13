@@ -41,7 +41,7 @@ namespace Nox.Instances.Runtime {
 
 		static internal ISessionAPI SessionAPI
 			=> Instance.CoreAPI.ModAPI
-				.GetMod("session")
+				.GetMod("sessions")
 				?.GetInstance<ISessionAPI>();
 
 		static internal IServerAPI ServerAPI
