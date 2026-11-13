@@ -84,7 +84,7 @@ MonoBehaviour:
     - key: instance.create.server
       value: "Select a server"
     - key: instance.create.server.placeholder
-      value: "Choose a server…"
+      value: "Choose a server..."
     - key: instance.create.server.empty
       value: "No server configured"
     - key: instance.create.world
