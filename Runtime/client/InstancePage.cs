@@ -2,8 +2,8 @@ using System;
 using Cysharp.Threading.Tasks;
 using Nox.CCK.Mods.Events;
 using Nox.CCK.Utils;
+using Nox.Assets;
 using Nox.CCK.Network.Assets;
-using Nox.CCK.Worlds;
 using Nox.Network.Assets;
 using Nox.UI;
 using Nox.Worlds;
@@ -25,7 +25,7 @@ namespace Nox.Instances.Runtime.client {
 		private Identifier _identifier;
 		public IInstance Instance;
 		public IAssetFile Asset;
-		public ushort Version = ushort.MaxValue;
+		public uint Release = AssetIdentifierExtensions.DEFAULT_VERSION;
 		public IWorld World;
 		private bool _isLoading;
 		private bool _isRefreshing;
@@ -82,7 +82,7 @@ namespace Nox.Instances.Runtime.client {
 				_identifier = instance.Identifier,
 				Instance    = instance,
 				World       = world,
-				Version     = instance.World.GetVersion(),
+				Release     = instance.World.GetRelease(),
 				Asset       = asset,
 			};
 			if (page.World == null)
@@ -180,7 +180,7 @@ namespace Nox.Instances.Runtime.client {
 				return;
 			}
 
-			Main.WorldAPI?.DownloadToCache(Asset.Url, Asset.CacheKey())?.Start().Forget();
+			Main.WorldAPI?.DownloadToCache(new IdentifierCache(Instance.World, Asset))?.Start().Forget();
 		}
 
 		public object[] GetContext()
@@ -201,9 +201,9 @@ namespace Nox.Instances.Runtime.client {
 
 		public void OnOpen(IPage lastPage) {
 			_events = new[] {
-				Main.Instance.CoreAPI.EventAPI.Subscribe("world_cache_added", OnCacheUpdate),
-				Main.Instance.CoreAPI.EventAPI.Subscribe("world_cache_download", OnCacheUpdate),
-				Main.Instance.CoreAPI.EventAPI.Subscribe("world_cache_removed", OnCacheUpdate),
+			Main.Instance.CoreAPI.EventAPI.Subscribe("asset_cache_added", OnCacheUpdate),
+			Main.Instance.CoreAPI.EventAPI.Subscribe("asset_cache_download", OnCacheUpdate),
+			Main.Instance.CoreAPI.EventAPI.Subscribe("asset_cache_removed", OnCacheUpdate),
 				Main.Instance.CoreAPI.EventAPI.Subscribe("session_added", OnSessionUpdate),
 				Main.Instance.CoreAPI.EventAPI.Subscribe("session_removed", OnSessionUpdate),
 				Main.Instance.CoreAPI.EventAPI.Subscribe("session_state_changed", OnSessionUpdate),

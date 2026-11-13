@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Nox.Assets;
 using Nox.CCK.Convertors;
 using Nox.CCK.Language;
 using Nox.CCK.Utils;
@@ -258,7 +259,25 @@ namespace Nox.Instances.Runtime.client {
 		private void BuildVersionBox() {
 			MakeBox("instance.create.version", out var boxContent);
 			versionField = MakeInput(boxContent, "instance.create.version.placeholder", TMP_InputField.ContentType.IntegerNumber);
-			versionField.text = Page.Version == ushort.MaxValue ? string.Empty : Page.Version.ToString();
+			versionField.text = AssetIdentifierExtensions.IsPreferredVersion(Page.Release)
+				? string.Empty
+				: Page.Release.ToString();
+			versionField.onEndEdit.AddListener(OnVersionChanged);
+		}
+
+		/// <summary>
+		/// Applies the manually typed release to the page. An empty or invalid value means
+		/// "no pinned release": it is normalized to the auto sentinel so no <c>?v=</c> is emitted.
+		/// </summary>
+		private void OnVersionChanged(string value) {
+			if (string.IsNullOrWhiteSpace(value)
+				|| !uint.TryParse(value.Trim(), out var release)
+				|| AssetIdentifierExtensions.IsPreferredVersion(release)) {
+				Page.Release = AssetIdentifierExtensions.DEFAULT_VERSION;
+				return;
+			}
+
+			Page.Release = release;
 		}
 
 		private void BuildTagsBox() {
@@ -430,11 +449,15 @@ namespace Nox.Instances.Runtime.client {
 
 			Page.World  = world;
 
-			var version = (ushort)(world.Release?.Value ?? ushort.MaxValue);
-			Page.Version = version == ushort.MaxValue ? ushort.MaxValue : version;
+			var release = (uint)(world.Release?.Value ?? 0);
+			Page.Release = AssetIdentifierExtensions.IsPreferredVersion(release)
+				? AssetIdentifierExtensions.DEFAULT_VERSION
+				: release;
 
 			if (versionField)
-				versionField.text = Page.Version == ushort.MaxValue ? string.Empty : Page.Version.ToString();
+				versionField.text = AssetIdentifierExtensions.IsPreferredVersion(Page.Release)
+					? string.Empty
+					: Page.Release.ToString();
 
 			if (capacitySlider) {
 				capacitySlider.maxValue = GetMaxCapacity();
@@ -462,7 +485,7 @@ namespace Nox.Instances.Runtime.client {
 				return;
 
 			var request = new CreateInstanceRequest {
-				World       = FormatWorldIdentifier(Page.World, Page.Version),
+				World       = FormatWorldIdentifier(Page.World, Page.Release),
 				Capacity    = GetCapacity(),
 				Name        = shortNameField ? shortNameField.text : Page.ShortName,
 				Title       = titleField ? titleField.text : Page.Title,
@@ -489,15 +512,15 @@ namespace Nox.Instances.Runtime.client {
 			return (ushort)Mathf.Min(v, GetMaxCapacity());
 		}
 
-		private static string FormatWorldIdentifier(IWorld world, ushort version) {
+		private static string FormatWorldIdentifier(IWorld world, uint release) {
 			var shortId = world.Identifier.ToShortString();
-			if (version == ushort.MaxValue)
+			if (AssetIdentifierExtensions.IsPreferredVersion(release))
 				return shortId;
 
 			var idx = shortId.IndexOf('@');
 			return idx >= 0
-				? shortId.Insert(idx, $"?v={version}")
-				: $"{shortId}?v={version}";
+				? shortId.Insert(idx, $"?v={release}")
+				: $"{shortId}?v={release}";
 		}
 
 		private static string[] ParseTags(string text) {

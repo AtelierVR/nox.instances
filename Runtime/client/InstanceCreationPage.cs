@@ -1,6 +1,5 @@
-using System;
+using Nox.Assets;
 using Nox.CCK.Utils;
-using Nox.Instances;
 using Nox.UI;
 using Nox.Network.Assets;
 using Nox.Worlds;
@@ -27,7 +26,7 @@ namespace Nox.Instances.Runtime.client {
 		public  IWorld      World;
 		public  IAssetFile Asset;
 		public  string      Server;
-		public  ushort      Version = ushort.MaxValue;
+		public  uint        Release = AssetIdentifierExtensions.DEFAULT_VERSION;
 		public  string      Mode;
 		public  ushort      Capacity;
 		public  string[]    Tags;
@@ -56,7 +55,7 @@ namespace Nox.Instances.Runtime.client {
 		/// <summary>
 		/// Context contract (arguments after menu id + page key):
 		/// 0 IWorld world
-		/// 1 ushort version (world version, ushort.MaxValue = auto)
+		/// 1 uint release (world release, 0 = auto / preferred release)
 		/// 2 IAssetFile asset
 		/// 3 string mode ("simple" | "advanced")
 		/// 4 string server
@@ -67,7 +66,7 @@ namespace Nox.Instances.Runtime.client {
 		/// 9 string shortName
 		/// </summary>
 		private static InstanceCreationPage OnPageByWorldForCreation(IMenu menu, object[] context, IWorld world, IAssetFile asset) {
-			var version  = T(context, 1, out ushort v) ? v : ushort.MaxValue;
+			var release  = T(context, 1, out uint v) ? v : AssetIdentifierExtensions.DEFAULT_VERSION;
 			var mode     = T(context, 3, out string m) ? m : null;
 			var server   = T(context, 4, out string s) ? s : null;
 			var title    = T(context, 5, out string t) ? t : null;
@@ -82,7 +81,7 @@ namespace Nox.Instances.Runtime.client {
 				World       = world,
 				Asset       = asset,
 				Server      = server ?? world?.Server,
-				Version     = version,
+				Release     = release,
 				Mode        = mode,
 				Capacity    = capacity,
 				Tags        = tags,
