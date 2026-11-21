@@ -317,7 +317,7 @@ namespace Nox.Instances.Runtime.client {
 					continue;
 				if (!s.State.IsReady())
 					continue;
-				if (s is INetSession net && !net.IsConnected)
+				if (s is INetworkSession net && !net.IsConnected)
 					continue;
 				return s;
 			}
